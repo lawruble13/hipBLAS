@@ -8,7 +8,7 @@
 - Avoid large offset overflow for gemv and hemv in hipblas-test
 
 ### Changed
-- Packaging split into a runtime package called hipblas and a development package called hipblas-devel. The development package depends on runtime. The runtime package suggests the development package for all supported OSes except CentOS 7 to aid in the transition. The suggests feature in packaging is introduced as a deprecated feature and will be removed in a future rocm release.
+- Packaging split into a runtime package (called hipblas) and a development package (called hipblas-dev for `.deb` packages, and hipblas-devel for `.rpm` packages). The development package depends on runtime. The runtime package suggests the development package for all supported OSes except CentOS 7 to aid in the transition. The suggests feature in packaging is introduced as a deprecated feature and will be removed in a future rocm release.
 
 ## [hipBLAS 0.47.0 for ROCm 4.4.0]
 ## Added
