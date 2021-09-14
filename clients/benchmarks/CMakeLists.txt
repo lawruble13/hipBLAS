@@ -32,7 +32,7 @@ if(LINK_BLIS)
 endif()
 
 if( NOT TARGET hipblas )
-  find_package( hipblas CONFIG PATHS /opt/rocm/hipblas )
+  find_package( hipblas CONFIG PATH_SUFFIXES hipblas )
 
   if( NOT hipblas_FOUND )
     message( FATAL_ERROR "hipBLAS is a required dependency and is not found; try adding hipblas path to CMAKE_PREFIX_PATH")
@@ -57,7 +57,6 @@ set( hipblas_benchmark_common
     )
 
 add_executable( hipblas-bench client.cpp ${hipblas_benchmark_common} )
-
 
 target_compile_features( hipblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 

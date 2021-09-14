@@ -12,12 +12,15 @@ if (NOT python)
     set(python "python3") # default for linux
 endif()
 
+if (DEFINED ENV{ROCM_PATH})
+  set (ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "The path to the ROCm installation.")
+
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
 if( WIN32 )
   set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" )
 else( )
-  set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
+  set( CMAKE_INSTALL_PREFIX "${ROCM_PATH}" CACHE PATH "Install path prefix, prepended onto install directories" )
 endif( )
 
 # This has to be initialized before the project() command appears
@@ -38,21 +41,10 @@ project( hipblas LANGUAGES CXX ${fortran_language} )
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.6 CONFIG QUIET PATHS /opt/rocm )
+find_package( ROCM 0.6 CONFIG)
 if( NOT ROCM_FOUND )
-  set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
-  file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
-    ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip )
-
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
-  execute_process( COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${PROJECT_EXTERN_DIR}/rocm-cmake .
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
-  execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
-
-  find_package( ROCM 0.6 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
-endif( )
+  message(FATAL_ERROR "Could not find the common ROCm CMake files, did you set CMAKE_PREFIX_PATH to include your ROCm installation?")
+endif()
 
 include( ROCMSetupVersion )
 include( ROCMCreatePackage )
@@ -63,18 +55,8 @@ include( ROCMInstallSymlinks )
 set ( VERSION_STRING "0.49.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
-if( NOT DEFINED ENV{HIP_PATH})
-    set( HIP_PATH "/opt/rocm/hip" )
-else( )
-    set (HIP_PATH $ENV{HIP_PATH} )
-endif( )
-
-# Append our library helper cmake path and the cmake path for hip (for convenience)
-# Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake  ${HIP_PATH}/cmake)
-
-# NOTE:  workaround until hip cmake modules fixes symlink logic in their config files; remove when fixed
-list( APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/llvm /opt/rocm/hip )
+# Append our library helper cmake path
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
@@ -90,14 +72,15 @@ option( BUILD_SHARED_LIBS "Build hipBLAS as a shared library" ON )
 # Find CUDA if the user wants a CUDA version.
 option(USE_CUDA "Look for CUDA and use that as a backend if found" OFF)
 if (USE_CUDA)
-    find_package( CUDA REQUIRED )
+    find_package( CUDA REQUIRED PATH_SUFFIXES hip hip/cmake)
 endif()
 
 # Hip headers required of all clients; clients use hip to allocate device memory
 if( USE_CUDA)
-    find_package( HIP MODULE REQUIRED )
+    find_package( HIP MODULE REQUIRED PATH_SUFFIXES hip hip/cmake)
 else( )
-    find_package( hip REQUIRED CONFIG PATHS ${HIP_PATH} ${ROCM_PATH} /opt/rocm)
+
+    find_package( hip REQUIRED CONFIG PATH_SUFFIXES hip llvm)
 endif( )
 
 if( USE_CUDA )
