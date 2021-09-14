@@ -12,12 +12,16 @@ if (NOT python)
     set(python "python3") # default for linux
 endif()
 
+if (NOT DEFINED ROCM_PATH and $ENV{ROCM_PATH})
+  set(ROCM_PATH "${ROCM_PATH}")
+endif()
+
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
 if( WIN32 )
   set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" )
 else( )
-  set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
+  set( CMAKE_INSTALL_PREFIX "${ROCM_PATH}" CACHE PATH "Install path prefix, prepended onto install directories" )
 endif( )
 
 # This has to be initialized before the project() command appears
@@ -38,7 +42,7 @@ project( hipblas LANGUAGES CXX ${fortran_language} )
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.6 CONFIG QUIET PATHS /opt/rocm )
+find_package( ROCM 0.6 CONFIG QUIET PATHS ${ROCM_PATH} )
 if( NOT ROCM_FOUND )
   set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
   file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
@@ -64,7 +68,7 @@ set ( VERSION_STRING "0.49.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 if( NOT DEFINED ENV{HIP_PATH})
-    set( HIP_PATH "/opt/rocm/hip" )
+    set( HIP_PATH "${ROCM_PATH}/hip" )
 else( )
     set (HIP_PATH $ENV{HIP_PATH} )
 endif( )
@@ -74,7 +78,7 @@ endif( )
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake  ${HIP_PATH}/cmake)
 
 # NOTE:  workaround until hip cmake modules fixes symlink logic in their config files; remove when fixed
-list( APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/llvm /opt/rocm/hip )
+list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/llvm ${ROCM_PATH}/hip )
 
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
@@ -97,7 +101,7 @@ endif()
 if( USE_CUDA)
     find_package( HIP MODULE REQUIRED )
 else( )
-    find_package( hip REQUIRED CONFIG PATHS ${HIP_PATH} ${ROCM_PATH} /opt/rocm)
+    find_package( hip REQUIRED CONFIG PATHS ${HIP_PATH} ${ROCM_PATH} ${ROCM_PATH})
 endif( )
 
 if( USE_CUDA )

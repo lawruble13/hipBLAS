@@ -10,7 +10,7 @@ cmake_minimum_required( VERSION 3.5 )
 if( WIN32 )
   set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" )
 else( )
-  set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
+  set( CMAKE_INSTALL_PREFIX "${ROCM_PATH}" CACHE PATH "Install path prefix, prepended onto install directories" )
 endif( )
 
 # This has to be initialized before the project() command appears

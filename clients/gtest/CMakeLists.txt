@@ -29,7 +29,7 @@ if( NOT cblas_FOUND )
 endif( )
 
 if( NOT TARGET hipblas )
-  find_package( hipblas CONFIG PATHS /opt/rocm/hipblas )
+  find_package( hipblas CONFIG PATHS ${ROCM_PATH}/hipblas )
 
   if( NOT hipblas_FOUND )
     message( FATAL_ERROR "hipBLAS is a required dependency and is not found; try adding hipblas path to CMAKE_PREFIX_PATH")
