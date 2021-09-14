@@ -14,6 +14,7 @@ endif()
 
 if (DEFINED ENV{ROCM_PATH})
   set (ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "The path to the ROCm installation.")
+endif()
 
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
